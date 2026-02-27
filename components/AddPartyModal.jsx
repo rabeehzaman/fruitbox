@@ -1,17 +1,18 @@
 'use client'
 import { useState } from 'react'
 import { useFruitBox } from '@/lib/context'
-import { generateId, getTodayDateStr } from '@/lib/utils'
+import { getTodayDateStr } from '@/lib/utils'
 
 export default function AddPartyModal({ open, onClose, onSaved }) {
-  const { parties, setParties } = useFruitBox()
+  const { parties, addParty } = useFruitBox()
   const [name, setName] = useState('')
   const [category, setCategory] = useState('customer')
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   if (!open) return null
 
-  function handleSave() {
+  async function handleSave() {
     const trimmed = name.trim()
     if (!trimmed) {
       setError('Party name is required.')
@@ -22,17 +23,18 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
       setError('A party with this name already exists.')
       return
     }
+    setSaving(true)
     const newParty = {
-      id: generateId(),
       name: trimmed,
       category,
       createdAt: getTodayDateStr(),
     }
-    setParties(prev => [...prev, newParty])
+    await addParty(newParty)
     setName('')
     setCategory('customer')
     setError('')
-    onSaved(newParty)
+    setSaving(false)
+    onSaved({ name: trimmed })
     onClose()
   }
 
@@ -52,7 +54,6 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
         </div>
 
-        {/* Name input */}
         <div className="flex flex-col gap-1 mb-4">
           <label className="text-sm font-semibold text-gray-600">Name</label>
           <input
@@ -65,7 +66,6 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
           />
         </div>
 
-        {/* Category toggle */}
         <div className="flex flex-col gap-2 mb-5">
           <label className="text-sm font-semibold text-gray-600">Category</label>
           <div className="flex gap-3">
@@ -91,9 +91,10 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
 
         <button
           onClick={handleSave}
-          className="w-full py-3.5 rounded-2xl bg-brand-green text-white font-bold text-base hover:bg-brand-green-dk transition-colors"
+          disabled={saving}
+          className="w-full py-3.5 rounded-2xl bg-brand-green text-white font-bold text-base hover:bg-brand-green-dk transition-colors disabled:opacity-60"
         >
-          Save Party
+          {saving ? 'Saving...' : 'Save Party'}
         </button>
       </div>
       <style>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>

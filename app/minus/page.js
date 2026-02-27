@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFruitBox } from '@/lib/context'
-import { generateId, getTodayDateStr } from '@/lib/utils'
+import { getTodayDateStr } from '@/lib/utils'
 import ScreenHeader from '@/components/ScreenHeader'
 import PartySelect from '@/components/PartySelect'
 import BoxInputGrid from '@/components/BoxInputGrid'
@@ -12,13 +12,14 @@ const EMPTY_BOXES = { small: 0, medium: 0, large: 0 }
 
 export default function MinusPage() {
   const router = useRouter()
-  const { setTransactions } = useFruitBox()
+  const { addTransaction } = useFruitBox()
 
   const [partyId, setPartyId] = useState('')
   const [date, setDate] = useState('')
   const [boxes, setBoxes] = useState({ ...EMPTY_BOXES })
   const [toast, setToast] = useState(null)
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => { setDate(getTodayDateStr()) }, [])
 
@@ -26,14 +27,14 @@ export default function MinusPage() {
     setBoxes(prev => ({ ...prev, [key]: val }))
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!partyId) { setError('Please select a party.'); return }
     if (!date)    { setError('Please select a date.');  return }
     const total = boxes.small + boxes.medium + boxes.large
     if (total === 0) { setError('Enter at least one box quantity.'); return }
 
-    const tx = {
-      id: generateId(),
+    setSaving(true)
+    await addTransaction({
       partyId,
       type: 'minus',
       small:  boxes.small,
@@ -41,8 +42,7 @@ export default function MinusPage() {
       large:  boxes.large,
       date,
       timestamp: Date.now(),
-    }
-    setTransactions(prev => [...prev, tx])
+    })
     setToast({ message: 'Minus entry saved!', type: 'success' })
     setTimeout(() => router.push('/'), 600)
   }
@@ -75,12 +75,13 @@ export default function MinusPage() {
 
         <button
           onClick={handleSave}
-          className="w-full py-4 rounded-2xl text-white font-bold text-lg transition-colors shadow-md mt-auto"
+          disabled={saving}
+          className="w-full py-4 rounded-2xl text-white font-bold text-lg transition-colors shadow-md mt-auto disabled:opacity-60"
           style={{ background: '#E65100' }}
           onMouseEnter={e => e.currentTarget.style.background = '#BF360C'}
           onMouseLeave={e => e.currentTarget.style.background = '#E65100'}
         >
-          Save Minus Entry
+          {saving ? 'Saving...' : 'Save Minus Entry'}
         </button>
       </main>
 
