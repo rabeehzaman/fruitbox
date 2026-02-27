@@ -34,17 +34,24 @@ export default function MinusPage() {
     if (total === 0) { setError('Enter at least one box quantity.'); return }
 
     setSaving(true)
-    await addTransaction({
-      partyId,
-      type: 'minus',
-      small:  boxes.small,
-      medium: boxes.medium,
-      large:  boxes.large,
-      date,
-      timestamp: Date.now(),
-    })
-    setToast({ message: 'Minus entry saved!', type: 'success' })
-    setTimeout(() => router.push('/'), 600)
+    try {
+      await addTransaction({
+        partyId,
+        type: 'minus',
+        small:  boxes.small,
+        medium: boxes.medium,
+        large:  boxes.large,
+        date,
+        timestamp: Date.now(),
+      })
+      setToast({ message: 'Minus entry saved!', type: 'success' })
+      setTimeout(() => router.push('/'), 600)
+    } catch (e) {
+      setError('Failed to save. Please try again.')
+      console.error('addTransaction error:', e)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (

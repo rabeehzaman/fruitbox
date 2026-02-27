@@ -24,18 +24,19 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
       return
     }
     setSaving(true)
-    const newParty = {
-      name: trimmed,
-      category,
-      createdAt: getTodayDateStr(),
+    try {
+      await addParty({ name: trimmed, category, createdAt: getTodayDateStr() })
+      setName('')
+      setCategory('customer')
+      setError('')
+      onSaved({ name: trimmed })
+      onClose()
+    } catch (e) {
+      setError('Failed to save. Please try again.')
+      console.error('addParty error:', e)
+    } finally {
+      setSaving(false)
     }
-    await addParty(newParty)
-    setName('')
-    setCategory('customer')
-    setError('')
-    setSaving(false)
-    onSaved({ name: trimmed })
-    onClose()
   }
 
   function handleOverlayClick(e) {
