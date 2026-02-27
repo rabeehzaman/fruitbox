@@ -19,7 +19,6 @@ export default function MinusPage() {
   const [boxes, setBoxes] = useState({ ...EMPTY_BOXES })
   const [toast, setToast] = useState(null)
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => { setDate(getTodayDateStr()) }, [])
 
@@ -33,25 +32,13 @@ export default function MinusPage() {
     const total = boxes.small + boxes.medium + boxes.large
     if (total === 0) { setError('Enter at least one box quantity.'); return }
 
-    setSaving(true)
-    try {
-      await addTransaction({
-        partyId,
-        type: 'minus',
-        small:  boxes.small,
-        medium: boxes.medium,
-        large:  boxes.large,
-        date,
-        timestamp: Date.now(),
-      })
-      setToast({ message: 'Minus entry saved!', type: 'success' })
-      setTimeout(() => router.push('/'), 600)
-    } catch (e) {
-      setError('Failed to save. Please try again.')
-      console.error('addTransaction error:', e)
-    } finally {
-      setSaving(false)
-    }
+    addTransaction({
+      partyId, type: 'minus',
+      small: boxes.small, medium: boxes.medium, large: boxes.large,
+      date, timestamp: Date.now(),
+    }).catch(e => console.error('addTransaction error:', e))
+    setToast({ message: 'Minus entry saved!', type: 'success' })
+    setTimeout(() => router.push('/'), 600)
   }
 
   return (
@@ -82,13 +69,12 @@ export default function MinusPage() {
 
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="w-full py-4 rounded-2xl text-white font-bold text-lg transition-colors shadow-md mt-auto disabled:opacity-60"
+          className="w-full py-4 rounded-2xl text-white font-bold text-lg transition-colors shadow-md mt-auto"
           style={{ background: '#E65100' }}
           onMouseEnter={e => e.currentTarget.style.background = '#BF360C'}
           onMouseLeave={e => e.currentTarget.style.background = '#E65100'}
         >
-          {saving ? 'Saving...' : 'Save Minus Entry'}
+          Save Minus Entry
         </button>
       </main>
 

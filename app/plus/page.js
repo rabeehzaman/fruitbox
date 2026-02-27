@@ -19,7 +19,6 @@ export default function PlusPage() {
   const [boxes, setBoxes] = useState({ ...EMPTY_BOXES })
   const [toast, setToast] = useState(null)
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
 
   useEffect(() => { setDate(getTodayDateStr()) }, [])
 
@@ -33,25 +32,13 @@ export default function PlusPage() {
     const total = boxes.small + boxes.medium + boxes.large
     if (total === 0) { setError('Enter at least one box quantity.'); return }
 
-    setSaving(true)
-    try {
-      await addTransaction({
-        partyId,
-        type: 'plus',
-        small:  boxes.small,
-        medium: boxes.medium,
-        large:  boxes.large,
-        date,
-        timestamp: Date.now(),
-      })
-      setToast({ message: 'Plus entry saved!', type: 'success' })
-      setTimeout(() => router.push('/'), 600)
-    } catch (e) {
-      setError('Failed to save. Please try again.')
-      console.error('addTransaction error:', e)
-    } finally {
-      setSaving(false)
-    }
+    addTransaction({
+      partyId, type: 'plus',
+      small: boxes.small, medium: boxes.medium, large: boxes.large,
+      date, timestamp: Date.now(),
+    }).catch(e => console.error('addTransaction error:', e))
+    setToast({ message: 'Plus entry saved!', type: 'success' })
+    setTimeout(() => router.push('/'), 600)
   }
 
   return (
@@ -81,10 +68,9 @@ export default function PlusPage() {
 
         <button
           onClick={handleSave}
-          disabled={saving}
-          className="w-full py-4 rounded-2xl bg-brand-green text-white font-bold text-lg hover:bg-brand-green-dk transition-colors shadow-md mt-auto disabled:opacity-60"
+          className="w-full py-4 rounded-2xl bg-brand-green text-white font-bold text-lg hover:bg-brand-green-dk transition-colors shadow-md mt-auto"
         >
-          {saving ? 'Saving...' : 'Save Plus Entry'}
+          Save Plus Entry
         </button>
       </main>
 

@@ -23,20 +23,14 @@ export default function AddPartyModal({ open, onClose, onSaved }) {
       setError('A party with this name already exists.')
       return
     }
-    setSaving(true)
-    try {
-      await addParty({ name: trimmed, category, createdAt: getTodayDateStr() })
-      setName('')
-      setCategory('customer')
-      setError('')
-      onSaved({ name: trimmed })
-      onClose()
-    } catch (e) {
-      setError('Failed to save. Please try again.')
-      console.error('addParty error:', e)
-    } finally {
-      setSaving(false)
-    }
+    // Fire write — don't block on server ack, onSnapshot updates UI reactively
+    addParty({ name: trimmed, category, createdAt: getTodayDateStr() })
+      .catch(e => console.error('addParty error:', e))
+    setName('')
+    setCategory('customer')
+    setError('')
+    onSaved({ name: trimmed })
+    onClose()
   }
 
   function handleOverlayClick(e) {
